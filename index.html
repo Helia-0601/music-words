@@ -497,9 +497,13 @@
         <span>🐢 Speak slowly</span>
         <button class="toggle" id="slowSpeakToggle" onclick="toggleSlowSpeak()"></button>
       </div>
-      <div class="row">
-        <span>Voice engine</span>
-        <span class="v" id="voiceStatus">built-in</span>
+      <div class="row" style="flex-direction:column;align-items:flex-start;gap:8px;">
+        <span>🗣 Pick a voice</span>
+        <select id="voiceSelect" onchange="onVoiceChange()" style="width:100%;padding:10px;border-radius:12px;border:1.5px solid #e2e2ea;font-size:15px;background:#fff;color:#222;">
+          <option>Loading voices…</option>
+        </select>
+        <button class="btn" style="padding:10px 16px;font-size:14px;width:auto;" onclick="testVoice()">🔊 Test this voice</button>
+        <span class="v" style="font-size:12px;">Tip: voices with "Google / Natural / Samantha" sound best.</span>
       </div>
       <div class="row" style="cursor:pointer;" onclick="resetProgress()"><span style="color:#d4335f;">Reset all progress</span><span class="v" style="color:#d4335f;">↺</span></div>
     </div>
@@ -664,7 +668,7 @@ function loadState() {
     const raw = localStorage.getItem(STORAGE);
     if (raw) return JSON.parse(raw);
   } catch(e) {}
-  return { learned:{}, streak:0, stars:0, lastOpenDate:'', autoSpeak:true, slowSpeak:false };
+  return { learned:{}, streak:0, stars:0, lastOpenDate:'', autoSpeak:true, slowSpeak:false, voiceName:'' };
 }
 function saveState() {
   try { localStorage.setItem(STORAGE, JSON.stringify(state)); } catch(e) {}
@@ -672,28 +676,108 @@ function saveState() {
 
 /* ===================== VOICE (TTS) ===================== */
 let voiceReady = false;
-function pickVoice() {
-  const voices = speechSynthesis.getVoices();
-  // prefer an English voice
-  return voices.find(v => /en(-|_)(US|GB)/i.test(v.lang)) || voices.find(v => /^en/i.test(v.lang)) || null;
+// Rank high-quality voices first — browser default pick is often robotic
+const VOICE_PREF = [
+  'google us english', 'google uk english female', 'google uk english male',
+  'samantha', 'aria', 'jenny', 'ava', 'allison', 'serena', 'emma', 'karen',
+  'moira', 'tessa', 'sonia', 'libby', 'michelle', 'zira', 'natasha',
+  'natural', 'daniel', 'kate', 'fiona', 'sara'
+];
+let englishVoices = [];
+function refreshVoices() {
+  const all = speechSynthesis.getVoices ? speechSynthesis.getVoices() : [];
+  englishVoices = all.filter(v => /^en/i.test(v.lang));
+  if (!englishVoices.length) englishVoices = all;
 }
+function scoreVoice(v) {
+  const n = (v.name || '').toLowerCase();
+  for (let i = 0; i < VOICE_PREF.length; i++) {
+    if (n.includes(VOICE_PREF[i])) return 1000 - i;
+  }
+  let s = 0;
+  if (/en[-_]us/i.test(v.lang)) s += 20;
+  else if (/en[-_]gb/i.test(v.lang)) s += 15;
+  else if (/^en/i.test(v.lang)) s += 10;
+  if (v.localService) s += 2;
+  if (v.default) s += 1;
+  // penalize known robotic/low-quality voice packs
+  if (n.includes('compact') || n.includes('eloquence') || n.includes('espeak') || n.includes('ting')) s -= 100;
+  return s;
+}
+function pickVoice() {
+  refreshVoices();
+  if (!englishVoices.length) return null;
+  const chosen = englishVoices.find(v => v.name === state.voiceName);
+  if (chosen) return chosen;
+  return englishVoices.slice().sort((a, b) => scoreVoice(b) - scoreVoice(a))[0];
+}
+const IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 function speak(text, slow) {
-  if (!('speechSynthesis' in window)) { toast('🔇 This browser cannot speak.'); return; }
+  if (!('speechSynthesis' in window)) { toast('🔇 No speech here — please open in Safari or Chrome.'); return; }
   try {
-    window.speechSynthesis.cancel();
+    const synth = window.speechSynthesis;
+    if (synth.speaking || synth.pending) synth.cancel();
     const u = new SpeechSynthesisUtterance(text);
     u.lang = 'en-US';
     u.rate = (slow || slowSpeak) ? 0.6 : 0.9;
-    u.pitch = 1.05;
+    u.pitch = 1.0;
     const v = pickVoice();
-    if (v) u.voice = v;
-    window.speechSynthesis.speak(u);
+    if (v) { u.voice = v; u.lang = v.lang; }
+    window._currU = u; // keep reference — iOS GC can kill the utterance mid-speech
+    if (IS_IOS) {
+      // iOS needs a short beat after cancel() or the audio gets swallowed
+      setTimeout(() => synth.speak(u), 60);
+    } else {
+      synth.speak(u);
+    }
     voiceReady = true;
-    document.getElementById('voiceStatus').textContent = 'On';
   } catch(e) { toast('🔇 Voice not ready.'); }
 }
+// iOS/Android: TTS only works after the first user touch — "unlock" it silently
+let speechUnlocked = false;
+function unlockSpeech() {
+  if (speechUnlocked || !('speechSynthesis' in window)) return;
+  try {
+    const u = new SpeechSynthesisUtterance(' ');
+    u.volume = 0;
+    window.speechSynthesis.speak(u);
+    speechUnlocked = true;
+  } catch(e) {}
+}
+document.addEventListener('touchend', unlockSpeech, {passive:true});
+document.addEventListener('click', unlockSpeech);
 function speakWord(slow) { if (currentWord) speak(currentWord.w, slow); }
 function speakSentence(slow) { if (currentWord) speak(currentWord.ex, slow); }
+function initVoiceSelect() {
+  const sel = document.getElementById('voiceSelect');
+  if (!sel || !('speechSynthesis' in window)) return;
+  refreshVoices();
+  const list = englishVoices.slice().sort((a, b) => scoreVoice(b) - scoreVoice(a));
+  if (!list.length) { sel.innerHTML = '<option>No English voice found</option>'; return; }
+  sel.innerHTML = '';
+  list.forEach(v => {
+    const o = document.createElement('option');
+    o.value = v.name;
+    o.textContent = v.name.replace(/^Microsoft\s*/i, '') + ' · ' + v.lang;
+    sel.appendChild(o);
+  });
+  if (state.voiceName && list.some(v => v.name === state.voiceName)) {
+    sel.value = state.voiceName;
+  } else {
+    const best = pickVoice();
+    if (best) { sel.value = best.name; state.voiceName = best.name; saveState(); }
+  }
+}
+function onVoiceChange() {
+  const sel = document.getElementById('voiceSelect');
+  state.voiceName = sel.value;
+  saveState();
+  testVoice();
+}
+function testVoice() {
+  const w = DAYS[0].words[0];
+  speak('Hello! This is my voice. ' + w.w + '. ' + w.ex);
+}
 
 /* ===================== NAV ===================== */
 function go(name) {
@@ -1012,7 +1096,7 @@ function renderProgress() {
   });
   document.getElementById('autoSpeakToggle').classList.toggle('on', !!autoSpeak);
   document.getElementById('slowSpeakToggle').classList.toggle('on', !!slowSpeak);
-  if (!('speechSynthesis' in window)) document.getElementById('voiceStatus').textContent = 'Not supported';
+  initVoiceSelect();
 }
 function toggleAutoSpeak() {
   autoSpeak = !autoSpeak;
@@ -1029,7 +1113,7 @@ function toggleSlowSpeak() {
 }
 function resetProgress() {
   if (!confirm('Reset all your progress?')) return;
-  state = { learned:{}, streak:0, stars:0, lastOpenDate:'', autoSpeak:autoSpeak, slowSpeak:slowSpeak };
+  state = { learned:{}, streak:0, stars:0, lastOpenDate:'', autoSpeak:autoSpeak, slowSpeak:slowSpeak, voiceName:state.voiceName || '' };
   saveState();
   toast('🔄 Progress cleared!');
   renderProgress();
@@ -1110,10 +1194,13 @@ window.addEventListener('DOMContentLoaded', () => {
   const sp = document.getElementById('spInput');
   sp.addEventListener('keydown', e => { if (e.key === 'Enter') checkSpell(); });
 
-  // preload voices
+  // preload voices + rebuild the picker when the system voice list arrives
   if ('speechSynthesis' in window) {
-    speechSynthesis.getVoices();
-    speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices();
+    refreshVoices();
+    initVoiceSelect();
+    speechSynthesis.onvoiceschanged = () => { refreshVoices(); initVoiceSelect(); };
+    // iOS: voices may load late — retry once after 1s
+    setTimeout(() => { refreshVoices(); initVoiceSelect(); }, 1000);
   }
 
   // Swipe gestures on flashcard
