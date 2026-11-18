@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="theme-color" content="#FF6FA8" />
+<title>Music Words - Learn & Play</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; overscroll-behavior: none; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", sans-serif;
+    background: linear-gradient(180deg, #FFE5F1 0%, #E5F1FF 100%);
+    color: #2d2d3a;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  :root {
+    --pink: #FF6FA8;
+    --purple: #8E7CFF;
+    --blue: #4FB4FF;
+    --green: #4CD891;
+    --yellow: #FFD166;
+    --orange: #FF974D;
+    --ink: #2d2d3a;
+    --muted: #8a8aa3;
+    --card: #ffffff;
+    --shadow: 0 10px 30px rgba(142,124,255,0.15);
+  }
+
+  /* ---------- Top Bar ---------- */
+  .topbar {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: saturate(180%) blur(14px);
+    -webkit-backdrop-filter: saturate(180%) blur(14px);
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    padding: 14px 18px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .topbar .logo {
+    width: 36px; height: 36px; border-radius: 12px;
+    background: linear-gradient(135deg, var(--pink), var(--purple));
+    display: grid; place-items: center; color: #fff; font-size: 20px;
+    box-shadow: 0 6px 14px rgba(255,111,168,0.35);
+  }
+  .topbar h1 { font-size: 18px; font-weight: 700; letter-spacing: 0.2px; }
+  .topbar .sub { font-size: 12px; color: var(--muted); }
+  .topbar .right { margin-left: auto; display: flex; gap: 8px; }
+  .pill {
+    padding: 6px 12px; border-radius: 999px; font-size: 12px; font-weight: 600;
+    background: rgba(142,124,255,0.1); color: var(--purple);
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+  .pill.fire { background: rgba(255,111,168,0.12); color: var(--pink); }
+
+  /* ---------- Layout ---------- */
+  .wrap { max-width: 720px; margin: 0 auto; padding: 18px; padding-bottom: 96px; }
+  .screen { display: none; animation: fade .35s ease; }
+  .screen.active { display: block; }
+  @keyframes fade { from { opacity: 0; transform: translateY(6px);} to { opacity: 1; transform: none;} }
+
+  /* ---------- Home ---------- */
+  .hero { text-align: center; padding: 18px 8px 12px; }
+  .hero .badge {
+    display: inline-block; padding: 4px 10px; border-radius: 999px;
+    background: rgba(255,209,102,0.25); color: #b07900; font-size: 12px; font-weight: 700;
+  }
+  .hero h2 { font-size: 28px; margin: 10px 0 6px; letter-spacing: -0.5px; }
+  .hero p { color: var(--muted); font-size: 14px; }
+  .streak {
+    margin: 18px auto 8px;
+    background: #fff;
+    border-radius: 18px; padding: 14px 18px; box-shadow: var(--shadow);
+    display: flex; align-items: center; gap: 14px;
+  }
+  .streak .ico { font-size: 30px; }
+  .streak .big { font-size: 22px; font-weight: 800; }
+  .streak .desc { font-size: 12px; color: var(--muted); }
+
+  .modes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; }
+  .mode {
+    background: var(--card); border-radius: 20px; padding: 18px 16px;
+    box-shadow: var(--shadow); cursor: pointer; position: relative;
+    transition: transform .15s ease;
+  }
+  .mode:active { transform: scale(0.97); }
+  .mode .emoji { font-size: 36px; }
+  .mode .name { font-weight: 800; font-size: 16px; margin-top: 8px; }
+  .mode .tip { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .mode .ribbon {
+    position: absolute; top: 12px; right: 12px; font-size: 11px;
+    background: rgba(76,216,145,0.15); color: #1a9d57; font-weight: 700;
+    padding: 3px 8px; border-radius: 999px;
+  }
+  .mode.featured { background: linear-gradient(135deg, #fff5fa, #fff); border: 2px solid var(--pink); }
+
+  .day-list { margin-top: 18px; }
+  .day-list h3 {
+    font-size: 14px; color: var(--muted); margin: 8px 6px 10px;
+    text-transform: uppercase; letter-spacing: 1.5px;
+  }
+  .day-card {
+    background: #fff; border-radius: 16px; padding: 14px 16px; margin-bottom: 10px;
+    box-shadow: var(--shadow); display: flex; align-items: center; gap: 12px;
+    cursor: pointer;
+  }
+  .day-card:active { transform: scale(0.99); }
+  .day-card .num {
+    width: 44px; height: 44px; border-radius: 12px;
+    background: linear-gradient(135deg, var(--purple), var(--blue));
+    color: #fff; display: grid; place-items: center; font-weight: 800;
+  }
+  .day-card .title { font-weight: 700; }
+  .day-card .meta { font-size: 12px; color: var(--muted); }
+  .day-card .goto { margin-left: auto; color: var(--purple); font-weight: 800; }
+
+  /* ---------- Flashcard ---------- */
+  .top-actions {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;
+  }
+  .back-btn {
+    width: 38px; height: 38px; border-radius: 12px; background: #fff;
+    display: grid; place-items: center; font-size: 18px; box-shadow: var(--shadow);
+    border: none; cursor: pointer; color: var(--ink);
+  }
+  .back-btn:active { transform: scale(0.92); }
+  .progress-pill {
+    padding: 6px 14px; border-radius: 999px; background: #fff;
+    box-shadow: var(--shadow); font-weight: 700; font-size: 13px; color: var(--purple);
+  }
+
+  .card-stage { perspective: 1500px; margin: 4px auto 14px; }
+  .flashcard {
+    width: 100%; min-height: 360px; position: relative;
+    transform-style: preserve-3d; transition: transform .6s cubic-bezier(0.4, 0.2, 0.2, 1);
+    cursor: pointer;
+  }
+  .flashcard.flipped { transform: rotateY(180deg); }
+  .face {
+    position: absolute; inset: 0; border-radius: 24px;
+    backface-visibility: hidden; -webkit-backface-visibility: hidden;
+    background: #fff; box-shadow: var(--shadow);
+    padding: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center;
+  }
+  .face.back {
+    transform: rotateY(180deg);
+    background: linear-gradient(160deg, #fff, #fff6fb);
+  }
+  .face .day-tag {
+    position: absolute; top: 16px; left: 16px;
+    background: rgba(255,111,168,0.15); color: var(--pink);
+    padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 700;
+  }
+  .face .speaker {
+    position: absolute; top: 14px; right: 14px;
+    width: 42px; height: 42px; border-radius: 50%; border: none;
+    background: rgba(142,124,255,0.12); color: var(--purple); font-size: 18px; cursor: pointer;
+    display: grid; place-items: center;
+  }
+  .face .speaker:active { transform: scale(0.9); }
+  .face .speaker.slow { top: 64px; width: 36px; height: 36px; font-size: 15px; background: rgba(79,180,255,0.12); color: var(--blue); }
+  .face .word { font-size: 34px; font-weight: 800; letter-spacing: -0.5px; }
+  .face .hint { font-size: 12px; color: var(--muted); margin-top: 20px; }
+  .face .zh { font-size: 36px; font-weight: 800; color: var(--purple); }
+  .face .en-mean { font-size: 16px; color: #555; margin-top: 10px; line-height: 1.5; max-width: 92%; }
+
+  .ex-box {
+    margin-top: 16px; background: rgba(255,209,102,0.12);
+    border-radius: 14px; padding: 12px 14px; width: 92%;
+    text-align: left;
+  }
+  .ex-box .ex-label {
+    font-size: 11px; font-weight: 800; color: #b07900;
+    text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .ex-box .ex-label .sp { font-size: 16px; cursor: pointer; background: none; border: none; }
+  .ex-box .ex-en { font-size: 14px; line-height: 1.5; color: #444; font-weight: 600; }
+  .ex-box .ex-en b { color: var(--pink); background: rgba(255,111,168,0.1); padding: 0 3px; border-radius: 4px; }
+  .ex-box .ex-zh { font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+  .card-actions { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 6px; }
+  .act-btn {
+    border: none; border-radius: 16px; padding: 16px 8px;
+    font-weight: 800; font-size: 14px; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    box-shadow: var(--shadow); transition: transform .12s ease;
+  }
+  .act-btn:active { transform: scale(0.96); }
+  .act-btn .em { font-size: 22px; }
+  .act-btn.hard { background: #ffe2ea; color: #d4335f; }
+  .act-btn.ok { background: #fff2cf; color: #b07900; }
+  .act-btn.easy { background: #d8f5e3; color: #1a9d57; }
+
+  /* ---------- Quiz ---------- */
+  .quiz-card { background: #fff; border-radius: 20px; padding: 18px; box-shadow: var(--shadow); margin-bottom: 14px; }
+  .quiz-q { font-size: 13px; color: var(--muted); font-weight: 700; letter-spacing: 1px; }
+  .quiz-word-row { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 20px 0; }
+  .quiz-word { font-size: 30px; font-weight: 800; letter-spacing: -0.5px; }
+  .mini-spk {
+    width: 40px; height: 40px; border-radius: 50%; border: none;
+    background: rgba(142,124,255,0.12); color: var(--purple); font-size: 17px; cursor: pointer;
+    display: grid; place-items: center; flex-shrink: 0;
+  }
+  .mini-spk:active { transform: scale(0.9); }
+  .quiz-options { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 10px; }
+  .quiz-opt {
+    background: #f7f7fb; border-radius: 14px; padding: 14px 16px;
+    font-weight: 700; cursor: pointer; border: 2px solid transparent;
+    display: flex; align-items: center; gap: 10px; transition: all .15s ease;
+  }
+  .quiz-opt:active { transform: scale(0.98); }
+  .quiz-opt .letter {
+    width: 28px; height: 28px; border-radius: 8px; background: #fff; display: grid; place-items: center;
+    font-size: 13px; color: var(--purple); font-weight: 800; box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+  }
+  .quiz-opt.correct { background: #d8f5e3; border-color: #1a9d57; color: #1a9d57; }
+  .quiz-opt.wrong { background: #ffe2ea; border-color: #d4335f; color: #d4335f; }
+  .quiz-opt.disabled { pointer-events: none; opacity: 0.7; }
+
+  .quiz-progress { margin-top: 10px; height: 8px; background: #eee; border-radius: 999px; overflow: hidden; }
+  .quiz-bar { height: 100%; background: linear-gradient(90deg, var(--pink), var(--purple)); transition: width .3s ease; }
+
+  /* ---------- Spell ---------- */
+  .spell-input {
+    width:100%; padding:16px; border-radius:14px; border:2px solid #eee; font-size:22px;
+    font-weight:800; text-align:center; outline:none; letter-spacing:1px; background:#fafaff;
+    user-select: text; -webkit-user-select: text;
+  }
+  .spell-input:focus { border-color: var(--purple); }
+
+  /* ---------- Match ---------- */
+  .match-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .match-tile {
+    background: #fff; border-radius: 14px; padding: 16px 8px; text-align: center;
+    box-shadow: var(--shadow); cursor: pointer; font-weight: 700; font-size: 15px;
+    border: 2px solid transparent; transition: all .15s ease;
+    min-height: 64px; display: grid; place-items: center;
+  }
+  .match-tile.selected { border-color: var(--purple); background: rgba(142,124,255,0.08); }
+  .match-tile.matched { background: #d8f5e3; color: #1a9d57; border-color: #1a9d57; opacity: 0.6; pointer-events: none; }
+  .match-tile.wrong { background: #ffe2ea; color: #d4335f; animation: shake 0.4s; }
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    75% { transform: translateX(6px); }
+  }
+
+  /* ---------- Progress / Settings ---------- */
+  .panel { background: #fff; border-radius: 20px; padding: 18px; box-shadow: var(--shadow); margin-bottom: 12px; }
+  .panel h3 { font-size: 16px; margin-bottom: 8px; }
+  .panel .row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px dashed #eee; }
+  .panel .row:last-child { border-bottom: none; }
+  .panel .row .v { font-weight: 700; color: var(--purple); }
+  .toggle {
+    width: 52px; height: 30px; border-radius: 999px; background: #ddd; position: relative;
+    cursor: pointer; transition: background .2s ease; border: none;
+  }
+  .toggle::after {
+    content: ''; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px;
+    border-radius: 50%; background: #fff; transition: left .2s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+  }
+  .toggle.on { background: var(--green); }
+  .toggle.on::after { left: 25px; }
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 8px; }
+  .stat-card { background: #fff; border-radius: 16px; padding: 14px; text-align: center; box-shadow: var(--shadow); }
+  .stat-card .v { font-size: 22px; font-weight: 800; color: var(--pink); }
+  .stat-card .l { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+  .btn {
+    width: 100%; padding: 14px; border: none; border-radius: 16px; font-weight: 800;
+    background: linear-gradient(135deg, var(--pink), var(--purple)); color: #fff;
+    cursor: pointer; font-size: 15px; box-shadow: 0 8px 20px rgba(255,111,168,0.3);
+  }
+  .btn:active { transform: scale(0.98); }
+
+  /* ---------- Bottom Nav ---------- */
+  .tabbar {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: rgba(255,255,255,0.92); backdrop-filter: blur(14px);
+    border-top: 1px solid rgba(0,0,0,0.05);
+    display: flex; justify-content: space-around;
+    padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
+    z-index: 100;
+  }
+  .tab {
+    flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px;
+    padding: 6px 0; cursor: pointer; color: var(--muted); font-size: 11px; font-weight: 700;
+  }
+  .tab .em { font-size: 22px; }
+  .tab.active { color: var(--purple); }
+  .tab.active .em { transform: scale(1.1); }
+
+  /* ---------- Toast ---------- */
+  .toast {
+    position: fixed; top: 80px; left: 50%; transform: translateX(-50%);
+    background: rgba(45,45,58,0.92); color: #fff; padding: 10px 18px; border-radius: 999px;
+    font-size: 14px; font-weight: 700; z-index: 200; opacity: 0; pointer-events: none;
+    transition: opacity .25s ease, transform .25s ease; max-width: 85%; text-align: center;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ---------- Confetti ---------- */
+  .confetti { position: fixed; pointer-events: none; width: 8px; height: 12px; border-radius: 2px; z-index: 999; opacity: 0; }
+
+  .legend { font-size: 12px; color: var(--muted); margin: 10px 4px 0; }
+</style>
+</head>
+<body>
+
+<!-- ============ TOP BAR ============ -->
+<header class="topbar">
+  <div class="logo">♪</div>
+  <div>
+    <h1>Music Words</h1>
+    <div class="sub">Learn music terms · 21 days</div>
+  </div>
+  <div class="right">
+    <span class="pill fire">🔥 <span id="streakNum">0</span></span>
+    <span class="pill">⭐ <span id="starNum">0</span></span>
+  </div>
+</header>
+
+<!-- ============ MAIN ============ -->
+<main class="wrap">
+
+  <!-- ===== HOME ===== -->
+  <section class="screen active" id="screen-home">
+    <div class="hero">
+      <span class="badge">21-Day Plan</span>
+      <h2>Let's learn music words!</h2>
+      <p>Listen · Flip · Read the sentence · Remember!</p>
+    </div>
+
+    <div class="streak">
+      <div class="ico">🎵</div>
+      <div>
+        <div class="big">Hello, Music Star!</div>
+        <div class="desc">Tap 🔊 on every card to hear it.</div>
+      </div>
+    </div>
+
+    <div class="modes">
+      <div class="mode featured" onclick="go('flashcard')">
+        <div class="emoji">🎴</div>
+        <div class="name">Flash Cards</div>
+        <div class="tip">Word + sound + sentence</div>
+        <div class="ribbon">Start</div>
+      </div>
+      <div class="mode" onclick="go('quiz')">
+        <div class="emoji">🎯</div>
+        <div class="name">Pick Quiz</div>
+        <div class="tip">Listen and pick the meaning</div>
+      </div>
+      <div class="mode" onclick="go('spell')">
+        <div class="emoji">✏️</div>
+        <div class="name">Spell It</div>
+        <div class="tip">Type the word you hear</div>
+      </div>
+      <div class="mode" onclick="go('match')">
+        <div class="emoji">🧩</div>
+        <div class="name">Match Game</div>
+        <div class="tip">Match word with meaning</div>
+      </div>
+    </div>
+
+    <div class="day-list">
+      <h3>21-Day Plan</h3>
+      <div id="dayList"></div>
+    </div>
+  </section>
+
+  <!-- ===== FLASHCARD ===== -->
+  <section class="screen" id="screen-flashcard">
+    <div class="top-actions">
+      <button class="back-btn" onclick="go('home')">←</button>
+      <span class="progress-pill"><span id="fcDay">Day 1–3</span> · <span id="fcIdx">1</span> / <span id="fcTotal">0</span></span>
+      <button class="back-btn" onclick="go('progress')">⚙</button>
+    </div>
+
+    <div class="card-stage">
+      <div class="flashcard" id="flashcard" onclick="flipCard()">
+        <div class="face front">
+          <span class="day-tag" id="fcDayTag">Day 1</span>
+          <button class="speaker" onclick="event.stopPropagation(); speakWord()" title="Listen">🔊</button>
+          <button class="speaker slow" onclick="event.stopPropagation(); speakWord(true)" title="Slow">🐢</button>
+          <div class="word" id="fcWord">word</div>
+          <div class="hint">👆 Tap card to see meaning</div>
+        </div>
+        <div class="face back">
+          <span class="day-tag" id="fcDayTagBack">Day 1</span>
+          <div class="zh" id="fcZh">中文</div>
+          <div class="en-mean" id="fcEnMean">english meaning</div>
+          <div class="ex-box">
+            <div class="ex-label">
+              <span>📝 Example</span>
+              <button class="sp" onclick="event.stopPropagation(); speakSentence()">🔊</button>
+            </div>
+            <div class="ex-en" id="fcExEn"></div>
+            <div class="ex-zh" id="fcExZh"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-actions">
+      <button class="act-btn hard" onclick="rateCard('hard')"><span class="em">😕</span>Hard</button>
+      <button class="act-btn ok" onclick="rateCard('ok')"><span class="em">🙂</span>Okay</button>
+      <button class="act-btn easy" onclick="rateCard('easy')"><span class="em">😎</span>Easy</button>
+    </div>
+    <div class="legend">Tap card to flip · swipe left = Hard · swipe right = Easy · swipe up = Okay</div>
+  </section>
+
+  <!-- ===== QUIZ ===== -->
+  <section class="screen" id="screen-quiz">
+    <div class="top-actions">
+      <button class="back-btn" onclick="go('home')">←</button>
+      <span class="progress-pill">Quiz · <span id="qzCur">0</span> / <span id="qzTotal">0</span></span>
+      <div style="width:38px"></div>
+    </div>
+
+    <div class="quiz-card">
+      <div class="quiz-q">What does this word mean?</div>
+      <div class="quiz-word-row">
+        <div class="quiz-word" id="qzWord">word</div>
+        <button class="mini-spk" onclick="speak(document.getElementById('qzWord').textContent)">🔊</button>
+      </div>
+      <div class="quiz-options" id="qzOpts"></div>
+    </div>
+    <div class="quiz-progress"><div class="quiz-bar" id="qzBar" style="width:0%"></div></div>
+    <div class="legend">Pick the right meaning. The right one turns green.</div>
+  </section>
+
+  <!-- ===== SPELL ===== -->
+  <section class="screen" id="screen-spell">
+    <div class="top-actions">
+      <button class="back-btn" onclick="go('home')">←</button>
+      <span class="progress-pill">Spell · <span id="spCur">0</span> / <span id="spTotal">0</span></span>
+      <div style="width:38px"></div>
+    </div>
+
+    <div class="quiz-card">
+      <div class="quiz-q">Type the word for this meaning:</div>
+      <div class="quiz-word-row">
+        <div id="spHint" style="font-size: 20px; font-weight: 800; text-align:center;">meaning</div>
+        <button class="mini-spk" onclick="speak(currentSpell.w)">🔊</button>
+      </div>
+      <input id="spInput" class="spell-input" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+      <button class="btn" style="margin-top:12px;" onclick="checkSpell()">Check</button>
+      <div id="spMsg" style="text-align:center; margin-top:10px; font-weight:700; min-height:22px;"></div>
+      <div id="spEx" style="margin-top:8px; font-size:13px; color:var(--muted); text-align:center;"></div>
+    </div>
+  </section>
+
+  <!-- ===== MATCH ===== -->
+  <section class="screen" id="screen-match">
+    <div class="top-actions">
+      <button class="back-btn" onclick="go('home')">←</button>
+      <span class="progress-pill">Match · <span id="mtPairs">0</span> / <span id="mtTotal">5</span></span>
+      <div style="width:38px"></div>
+    </div>
+
+    <div id="matchArea" class="match-grid"></div>
+    <div class="legend">Tap a word, then tap its meaning. Match all to win!</div>
+  </section>
+
+  <!-- ===== PROGRESS ===== -->
+  <section class="screen" id="screen-progress">
+    <div class="top-actions">
+      <button class="back-btn" onclick="go('home')">←</button>
+      <span class="progress-pill">Your Progress</span>
+      <div style="width:38px"></div>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat-card"><div class="v" id="statLearned">0</div><div class="l">Words learned</div></div>
+      <div class="stat-card"><div class="v" id="statTotal">0</div><div class="l">All words</div></div>
+      <div class="stat-card"><div class="v" id="statPct">0%</div><div class="l">Done</div></div>
+    </div>
+
+    <div class="panel" style="margin-top:14px;">
+      <h3>📅 Each day</h3>
+      <div id="dayProgress"></div>
+    </div>
+
+    <div class="panel">
+      <h3>⚙ Settings</h3>
+      <div class="row">
+        <span>🔊 Auto-speak new word</span>
+        <button class="toggle on" id="autoSpeakToggle" onclick="toggleAutoSpeak()"></button>
+      </div>
+      <div class="row">
+        <span>🐢 Speak slowly</span>
+        <button class="toggle" id="slowSpeakToggle" onclick="toggleSlowSpeak()"></button>
+      </div>
+      <div class="row">
+        <span>Voice engine</span>
+        <span class="v" id="voiceStatus">built-in</span>
+      </div>
+      <div class="row" style="cursor:pointer;" onclick="resetProgress()"><span style="color:#d4335f;">Reset all progress</span><span class="v" style="color:#d4335f;">↺</span></div>
+    </div>
+
+    <button class="btn" onclick="go('flashcard')">Continue learning</button>
+  </section>
+
+</main>
+
+<!-- ============ TOAST ============ -->
+<div class="toast" id="toast"></div>
+
+<!-- ============ BOTTOM NAV ============ -->
+<nav class="tabbar">
+  <div class="tab active" data-tab="home" onclick="switchTab('home')"><div class="em">🏠</div>Home</div>
+  <div class="tab" data-tab="flashcard" onclick="switchTab('flashcard')"><div class="em">🎴</div>Cards</div>
+  <div class="tab" data-tab="quiz" onclick="switchTab('quiz')"><div class="em">🎯</div>Quiz</div>
+  <div class="tab" data-tab="match" onclick="switchTab('match')"><div class="em">🧩</div>Match</div>
+  <div class="tab" data-tab="progress" onclick="switchTab('progress')"><div class="em">📊</div>Me</div>
+</nav>
+
+<script>
+/* ===================== DATA ===================== */
+const DAYS = [
+  { id:'d1', label:'Day 1–3', theme:'Basic music theory', words:[
+    {w:'pitch', zh:'音高', en:'How high or low a sound is', ex:'The singer hit a very high pitch.', zhEx:'这位歌手唱到了很高的音。'},
+    {w:'rhythm', zh:'节奏', en:'The beat pattern in music', ex:'Clap the rhythm with your hands.', zhEx:'用手拍出这个节奏。'},
+    {w:'melody', zh:'旋律', en:'A tune — a line of notes', ex:'The melody of this song is catchy.', zhEx:'这首歌的旋律很抓耳。'},
+    {w:'harmony', zh:'和声', en:'Notes played together nicely', ex:'The harmony makes it sound full.', zhEx:'和声让它听起来很饱满。'},
+    {w:'scale', zh:'音阶', en:'Notes going up or down step by step', ex:'Do-Re-Mi is a scale.', zhEx:'Do-Re-Mi 就是一个音阶。'},
+    {w:'note', zh:'音符', en:'A single written sound', ex:'Each note has a length.', zhEx:'每个音符都有时值。'},
+    {w:'chord', zh:'和弦', en:'Three or more notes played together', ex:'Play a C chord.', zhEx:'弹一个C和弦。'},
+    {w:'key', zh:'调', en:'The home note group of a song', ex:'This song is in the key of C.', zhEx:'这首歌是C调的。'},
+    {w:'tempo', zh:'速度', en:'How fast or slow the music goes', ex:'The tempo gets faster.', zhEx:'速度变快了。'},
+    {w:'dynamics', zh:'力度', en:'How loud or soft the music is', ex:'Notice the dynamics — soft then loud.', zhEx:'注意力度变化——先弱后强。'},
+    {w:'timbre', zh:'音色', en:'The special color of a sound', ex:'A piano and flute have different timbres.', zhEx:'钢琴和长笛的音色不同。'},
+    {w:'phrase', zh:'乐句', en:'A short musical sentence', ex:'Each phrase is like a line of words.', zhEx:'每个乐句就像一句话。'},
+    {w:'accent', zh:'重音', en:'A note played louder than others', ex:'Put an accent on beat one.', zhEx:'在第一拍上加重音。'},
+    {w:'rest', zh:'休止符', en:'A moment of silence in music', ex:'Count four rests here.', zhEx:'在这里数四个休止符。'},
+    {w:'sustain', zh:'延音', en:'To make a note ring longer', ex:'Sustain the pedal for more sound.', zhEx:'踩住延音踏板让声音更持续。'},
+    {w:'arpeggio', zh:'琶音', en:'Notes of a chord played one by one', ex:'Play the chord as an arpeggio.', zhEx:'把这个和弦弹成琶音。'},
+    {w:'beat', zh:'节拍', en:'The steady pulse of music', ex:'Tap your foot to the beat.', zhEx:'跟着节拍跺跺脚。'},
+    {w:'syncopation', zh:'切分音', en:'A beat played where you don\'t expect', ex:'That syncopation makes it funky.', zhEx:'那个切分音让它很有律动感。'}
+  ]},
+  { id:'d4', label:'Day 4–7', theme:'Notes, intervals, harmony', words:[
+    {w:'triplet', zh:'三连音', en:'Three notes played in the time of two', ex:'A triplet has a "tri-ple-let" feel.', zhEx:'三连音有一种"哒哒哒"的感觉。'},
+    {w:'chord progression', zh:'和弦进行', en:'A series of chords in order', ex:'A classic chord progression is I-V-vi-IV.', zhEx:'经典的和弦进行是 I-V-vi-IV。'},
+    {w:'staff', zh:'五线谱', en:'Five lines where notes are written', ex:'Read the staff from bottom to top.', zhEx:'五线谱从下往上读。'},
+    {w:'treble clef', zh:'高音谱号', en:'The clef for high notes (right hand)', ex:'Most piano right-hand music uses the treble clef.', zhEx:'钢琴右手大多用高音谱号。'},
+    {w:'bass clef', zh:'低音谱号', en:'The clef for low notes (left hand)', ex:'Bass clef notes are lower in sound.', zhEx:'低音谱号的音符音更低。'},
+    {w:'alto clef', zh:'中音谱号', en:'Middle-range clef (for viola)', ex:'Viola players read alto clef.', zhEx:'中提琴手读中音谱号。'},
+    {w:'tenor clef', zh:'次中音谱号', en:'Clef for tenor voice and cello high notes', ex:'Cello uses tenor clef for high pieces.', zhEx:'大提琴在高音区用次中音谱号。'},
+    {w:'ledger line', zh:'加线', en:'A small line above or below the staff', ex:'Middle C sits on a ledger line.', zhEx:'中央C写在加线上。'},
+    {w:'time signature', zh:'拍号', en:'Two numbers that tell the beat count', ex:'3/4 is a waltz time signature.', zhEx:'3/4是圆舞曲的拍号。'},
+    {w:'meter', zh:'拍子', en:'How beats are grouped', ex:'This piece is in 4/4 meter.', zhEx:'这首曲子是4/4拍。'},
+    {w:'upbeat', zh:'弱拍', en:'A weak beat', ex:'Sing the upbeat to start.', zhEx:'从弱拍开始唱。'},
+    {w:'downbeat', zh:'强拍', en:'A strong beat', ex:'Hit the snare on the downbeat.', zhEx:'在强拍上敲军鼓。'},
+    {w:'key signature', zh:'调号', en:'Sharps or flats at the start', ex:'Two sharps = D major key signature.', zhEx:'两个升号 = D大调的调号。'},
+    {w:'accidental', zh:'变音记号', en:'A sharp, flat or natural sign', ex:'Watch the accidental before the note.', zhEx:'注意音符前的变音记号。'},
+    {w:'sharp', zh:'升号', en:'Raises a note by half step', ex:'F sharp means F, one half step higher.', zhEx:'升F就是F升高半音。'},
+    {w:'flat', zh:'降号', en:'Lowers a note by half step', ex:'B flat means B, one half step lower.', zhEx:'降B就是B降低半音。'},
+    {w:'natural', zh:'还原号', en:'Cancels a sharp or flat', ex:'Play B natural here.', zhEx:'这里弹还原B。'},
+    {w:'interval', zh:'音程', en:'The distance between two notes', ex:'A fifth is a common interval.', zhEx:'五度是常见的音程。'},
+    {w:'major', zh:'大调/大', en:'A bright, happy-sounding key or interval', ex:'C major sounds bright and happy.', zhEx:'C大调听起来明亮欢快。'},
+    {w:'minor', zh:'小调/小', en:'A sad, dark-sounding key or interval', ex:'A minor chord sounds sad.', zhEx:'小调和弦听起来很忧伤。'},
+    {w:'augmented', zh:'增', en:'Made wider by a half step', ex:'An augmented fifth sounds tense.', zhEx:'增五度听起来很紧张。'},
+    {w:'diminished', zh:'减', en:'Made smaller by a half step', ex:'A diminished chord sounds unstable.', zhEx:'减和弦听起来不稳定。'},
+    {w:'perfect', zh:'纯', en:'A "clean" sounding interval', ex:'A perfect fifth is very common.', zhEx:'纯五度非常常见。'},
+    {w:'unison', zh:'同度', en:'The same note sung together', ex:'Sing in unison please.', zhEx:'请大家齐唱。'},
+    {w:'octave', zh:'八度', en:'The same note eight steps apart', ex:'This note is one octave higher.', zhEx:'这个音高一个八度。'},
+    {w:'step', zh:'级进', en:'Going up or down to the next note', ex:'Move by step to feel smooth.', zhEx:'级进会让旋律很流畅。'},
+    {w:'skip', zh:'跳进', en:'Jumping over notes', ex:'A skip sounds bouncy.', zhEx:'跳进听起来有跳跃感。'},
+    {w:'triad', zh:'三和弦', en:'A three-note chord (root, third, fifth)', ex:'A C triad is C-E-G.', zhEx:'C三和弦是C-E-G。'},
+    {w:'root', zh:'根音', en:'The main note of a chord', ex:'The root of C-E-G is C.', zhEx:'C-E-G的根音是C。'},
+    {w:'root position', zh:'原位', en:'A chord with the root at the bottom', ex:'Play it in root position first.', zhEx:'先用原位弹。'},
+    {w:'first inversion', zh:'第一转位', en:'A chord with the third at the bottom', ex:'That chord is in first inversion.', zhEx:'那个和弦是第一转位。'},
+    {w:'second inversion', zh:'第二转位', en:'A chord with the fifth at the bottom', ex:'A second inversion chord sounds light.', zhEx:'第二转位的和弦听起来比较轻。'},
+    {w:'consonance', zh:'协和', en:'Notes that sound stable together', ex:'A perfect fifth is consonance.', zhEx:'纯五度是协和的。'},
+    {w:'dissonance', zh:'不协和', en:'Notes that sound tense together', ex:'That dissonance wants to resolve.', zhEx:'那个不协和音想要解决。'}
+  ]},
+  { id:'d8', label:'Day 8–11', theme:'Modes, form, ornaments', words:[
+    {w:'tonic', zh:'主音 (I)', en:'The "home" note of a key', ex:'Always come back to the tonic.', zhEx:'总是要回到主音。'},
+    {w:'supertonic', zh:'上主音 (II)', en:'The note a step above the tonic', ex:'The supertonic wants to move.', zhEx:'上主音总想移动。'},
+    {w:'mediant', zh:'中音 (III)', en:'The note a third above the tonic', ex:'The mediant is in the middle.', zhEx:'中音在中间的位置。'},
+    {w:'subdominant', zh:'下属音 (IV)', en:'The fourth note of the scale', ex:'The subdominant feels like home-away.', zhEx:'下属音有种"离家在外"的感觉。'},
+    {w:'dominant', zh:'属音 (V)', en:'The fifth note — pulls to home', ex:'The dominant has the strongest pull.', zhEx:'属音有最强的拉力。'},
+    {w:'submediant', zh:'下中音 (VI)', en:'The sixth note of the scale', ex:'The submediant likes to go down.', zhEx:'下中音喜欢向下进行。'},
+    {w:'leading note', zh:'导音 (VII)', en:'The seventh note that pulls up to tonic', ex:'The leading note wants to resolve up.', zhEx:'导音想向上解决。'},
+    {w:'modulate', zh:'转调', en:'To change key in a piece', ex:'The music modulates to A major.', zhEx:'音乐转调到A大调。'},
+    {w:'transpose', zh:'移调', en:'To change all notes to a new key', ex:'Transpose this song for the trumpet.', zhEx:'把这首歌为小号移调。'},
+    {w:'binary form', zh:'二部曲式', en:'A piece in two parts (A-B)', ex:'A dance might be in binary form.', zhEx:'舞曲可能是二部曲式。'},
+    {w:'ternary form', zh:'三部曲式', en:'A piece in three parts (A-B-A)', ex:'A minuet is often ternary form.', zhEx:'小步舞曲通常是三部曲式。'},
+    {w:'texture', zh:'织体', en:'How many layers of sound there are', ex:'This song has a thick texture.', zhEx:'这首歌的织体很厚重。'},
+    {w:'theme', zh:'主题', en:'The main musical idea', ex:'Hear the theme in the opening.', zhEx:'在开头听主题。'},
+    {w:'movement', zh:'乐章', en:'One part of a bigger piece', ex:'Symphonies have four movements.', zhEx:'交响曲有四个乐章。'},
+    {w:'exposition', zh:'呈示部', en:'The first part — main themes are shown', ex:'The exposition presents the melody.', zhEx:'呈示部展示旋律。'},
+    {w:'development', zh:'展开部', en:'The middle part — themes are explored', ex:'Listen to the wild development!', zhEx:'听那狂野的展开部！'},
+    {w:'recapitulation', zh:'再现部', en:'The main themes come back', ex:'The recapitulation brings us home.', zhEx:'再现部把我们带回家。'},
+    {w:'coda', zh:'尾声', en:'The ending section', ex:'Listen for the final coda.', zhEx:'注意结尾的尾声。'},
+    {w:'cadenza', zh:'华彩乐段', en:'A show-off solo part', ex:'The violinist played a flashy cadenza.', zhEx:'小提琴手演奏了华丽的华彩。'},
+    {w:'cadence', zh:'终止式', en:'A chord ending — like a "punctuation"', ex:'That cadence ends the phrase.', zhEx:'那个终止式结束了乐句。'},
+    {w:'half cadence', zh:'半终止', en:'An ending on V — feels like a pause', ex:'A half cadence sounds like a question.', zhEx:'半终止听起来像一个问题。'},
+    {w:'perfect cadence', zh:'完全终止', en:'V to I — the strongest ending', ex:'End with a perfect cadence.', zhEx:'用完全终止来结尾。'},
+    {w:'plagal cadence', zh:'变格终止', en:'IV to I — the "Amen" ending', ex:'Hymns often use plagal cadence.', zhEx:'圣咏常用变格终止。'},
+    {w:'resolve', zh:'解决', en:'Tense notes moving to rest', ex:'The leading tone needs to resolve.', zhEx:'导音需要解决。'},
+    {w:'suspension', zh:'延留音', en:'A note held over, then resolving', ex:'That suspension creates tension.', zhEx:'那个延留音制造了紧张感。'},
+    {w:'passing tone', zh:'经过音', en:'A stepping note between two others', ex:'The passing tone fills the gap.', zhEx:'经过音填补了空隙。'},
+    {w:'neighbor tone', zh:'辅助音', en:'A note that steps out and back', ex:'A neighbor tone decorates a melody.', zhEx:'辅助音装饰了旋律。'},
+    {w:'ornament', zh:'装饰音', en:'A fancy decoration on a note', ex:'Add a trill — an ornament!', zhEx:'加一个颤音——那就是装饰音！'},
+    {w:'variation', zh:'变奏', en:'A new version of a theme', ex:'Theme and Variations is a classic form.', zhEx:'主题与变奏是经典曲式。'}
+  ]},
+  { id:'d12', label:'Day 12–18', theme:'Italian performance words', words:[
+    {w:'a tempo', zh:'回原速', en:'Back to the original speed', ex:'After slowing down, return a tempo.', zhEx:'渐慢之后回到原速。'},
+    {w:'accelerando', zh:'(accel.) 渐快', en:'Gradually getting faster', ex:'The music grows: accelerando!', zhEx:'音乐越来越快：渐快！'},
+    {w:'adagio', zh:'慢板', en:'Slow, calm and grand', ex:'Play this adagio with care.', zhEx:'用心弹这首慢板。'},
+    {w:'allegretto', zh:'小快板', en:'A little fast — light and quick', ex:'Allegretto is light and quick.', zhEx:'小快板轻快活泼。'},
+    {w:'andante', zh:'行板', en:'A walking pace — medium speed', ex:'Andante feels like a stroll.', zhEx:'行板像散步的节奏。'},
+    {w:'cantabile', zh:'如歌的', en:'In a singing style', ex:'Make this line more cantabile.', zhEx:'让这一句更像唱歌。'},
+    {w:'crescendo', zh:'(cresc.) 渐强', en:'Gradually getting louder', ex:'Build up with a crescendo.', zhEx:'用渐强推起来。'},
+    {w:'decrescendo', zh:'(decresc.) 渐弱', en:'Gradually getting softer', ex:'A decrescendo at the end.', zhEx:'结尾做一个渐弱。'},
+    {w:'diminuendo', zh:'(dim.) 渐弱', en:'Same idea — getting softer', ex:'A long diminuendo fades out.', zhEx:'长长的渐弱让声音慢慢消失。'},
+    {w:'dolce', zh:'甜美柔和', en:'Sweet and gentle', ex:'Play more dolce here.', zhEx:'这里弹得更柔美一些。'},
+    {w:'legato', zh:'连奏', en:'Smooth and connected', ex:'Keep the melody legato.', zhEx:'保持旋律连贯。'},
+    {w:'staccato', zh:'(stacc.) 断奏', en:'Short, separated notes', ex:'Bouncy staccato notes!', zhEx:'蹦蹦跳跳的断奏！'},
+    {w:'marcato', zh:'(marc.) 着重', en:'Marked, strong and clear', ex:'Hit each note marcato.', zhEx:'每个音都要着重的弹。'},
+    {w:'rubato', zh:'自由速度', en:'Free, flexible speed — with feeling', ex:'Use a little rubato in the melody.', zhEx:'在旋律里用一点点自由速度。'},
+    {w:'poco a poco', zh:'一点点地', en:'Little by little', ex:'Get faster poco a poco.', zhEx:'一点点地加快。'},
+    {w:'molto', zh:'非常', en:'Very', ex:'Play molto loud!', zhEx:'弹得非常响亮！'},
+    {w:'piu', zh:'更加', en:'More', ex:'Piu forte means "more loud".', zhEx:'piu forte 就是"更强"。'},
+    {w:'meno', zh:'更少/稍弱', en:'Less', ex:'Meno mosso means "less motion".', zhEx:'meno mosso 就是"稍慢一点"。'},
+    {w:'sforzando', zh:'(sf/sfz) 突强', en:'A sudden strong accent', ex:'Hit that note sforzando!', zhEx:'那个音要突强！'},
+    {w:'sempre', zh:'始终/一直', en:'Always, all the time', ex:'Sempre forte: always loud.', zhEx:'sempre forte：始终强奏。'},
+    {w:'espressivo', zh:'(espress.) 富表情', en:'With feeling', ex:'Play espressivo — full of emotion.', zhEx:'充满感情地弹。'},
+    {w:'grave', zh:'极慢板', en:'Very slow and serious', ex:'The grave section is heavy.', zhEx:'极慢板的部分很沉重。'},
+    {w:'largo', zh:'广板', en:'Very slow, broad', ex:'Largo is slower than adagio.', zhEx:'广板比慢板更慢。'},
+    {w:'presto', zh:'急板', en:'Very fast!', ex:'Presto — flying fingers!', zhEx:'急板——手指要飞起来！'},
+    {w:'ritardando', zh:'(rit.) 渐慢', en:'Gradually slowing down', ex:'A ritardando at the end.', zhEx:'结尾做一个渐慢。'}
+  ]},
+  { id:'d19', label:'Day 19–21', theme:'Mix review', words:[
+    {w:'review', zh:'复习', en:'Go back over things you learned', ex:'Today we review the old words.', zhEx:'今天我们复习旧单词。'},
+    {w:'remember', zh:'记住', en:'Keep in your mind', ex:'Try to remember this word.', zhEx:'试着记住这个单词。'},
+    {w:'practice', zh:'练习', en:'Do it many times to get good', ex:'Practice makes perfect!', zhEx:'熟能生巧！'},
+    {w:'improve', zh:'进步', en:'Get better over time', ex:'Each day you improve.', zhEx:'你每天都在进步。'},
+    {w:'musician', zh:'音乐家', en:'A person who plays music', ex:'Every great musician practices daily.', zhEx:'每位伟大的音乐家都每天练习。'}
+  ]}
+];
+
+/* ===================== STATE ===================== */
+const STORAGE = 'musicWordsState_v2';
+let state = loadState();
+let currentWord = null;
+let currentList = [];
+let currentIndex = 0;
+let currentDay = 'd1';
+let currentSpell = {w:'', ex:'', zhEx:''};
+let autoSpeak = true;
+let slowSpeak = false;
+
+/* ===================== STORAGE ===================== */
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE);
+    if (raw) return JSON.parse(raw);
+  } catch(e) {}
+  return { learned:{}, streak:0, stars:0, lastOpenDate:'', autoSpeak:true, slowSpeak:false };
+}
+function saveState() {
+  try { localStorage.setItem(STORAGE, JSON.stringify(state)); } catch(e) {}
+}
+
+/* ===================== VOICE (TTS) ===================== */
+let voiceReady = false;
+function pickVoice() {
+  const voices = speechSynthesis.getVoices();
+  // prefer an English voice
+  return voices.find(v => /en(-|_)(US|GB)/i.test(v.lang)) || voices.find(v => /^en/i.test(v.lang)) || null;
+}
+function speak(text, slow) {
+  if (!('speechSynthesis' in window)) { toast('🔇 This browser cannot speak.'); return; }
+  try {
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'en-US';
+    u.rate = (slow || slowSpeak) ? 0.6 : 0.9;
+    u.pitch = 1.05;
+    const v = pickVoice();
+    if (v) u.voice = v;
+    window.speechSynthesis.speak(u);
+    voiceReady = true;
+    document.getElementById('voiceStatus').textContent = 'On';
+  } catch(e) { toast('🔇 Voice not ready.'); }
+}
+function speakWord(slow) { if (currentWord) speak(currentWord.w, slow); }
+function speakSentence(slow) { if (currentWord) speak(currentWord.ex, slow); }
+
+/* ===================== NAV ===================== */
+function go(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+  if (name === 'home') renderHome();
+  if (name === 'flashcard' && !currentWord) startFlashcard(currentDay);
+  if (name === 'quiz') startQuiz();
+  if (name === 'spell') startSpell();
+  if (name === 'match') startMatch();
+  if (name === 'progress') renderProgress();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+function switchTab(name) { go(name); }
+
+/* ===================== HOME ===================== */
+function renderHome() {
+  document.getElementById('streakNum').textContent = state.streak || 0;
+  document.getElementById('starNum').textContent = state.stars || 0;
+  const list = document.getElementById('dayList');
+  list.innerHTML = '';
+  DAYS.forEach(d => {
+    const total = d.words.length;
+    let done = 0;
+    d.words.forEach(w => { if (state.learned[w.w]) done++; });
+    const el = document.createElement('div');
+    el.className = 'day-card';
+    el.innerHTML = `
+      <div class="num">${d.label.replace('Day ','')}</div>
+      <div>
+        <div class="title">${d.label}</div>
+        <div class="meta">${d.theme} · ${done}/${total} learned</div>
+      </div>
+      <div class="goto">Start →</div>
+    `;
+    el.onclick = () => startDay(d.id);
+    list.appendChild(el);
+  });
+}
+function startDay(id) { currentDay = id; startFlashcard(id); }
+
+/* ===================== FLASHCARD ===================== */
+function startFlashcard(dayId) {
+  const d = DAYS.find(x => x.id === dayId) || DAYS[0];
+  currentList = [...d.words];
+  currentIndex = 0;
+  showCard();
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-flashcard').classList.add('active');
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === 'flashcard'));
+}
+function showCard() {
+  if (currentList.length === 0) { startFlashcard(DAYS[0].id); return; }
+  const w = currentList[currentIndex];
+  currentWord = w;
+  document.getElementById('flashcard').classList.remove('flipped');
+  document.getElementById('fcWord').textContent = w.w;
+  document.getElementById('fcZh').textContent = w.zh;
+  document.getElementById('fcEnMean').textContent = w.en;
+  // highlight the word inside the example sentence
+  let exHtml = w.ex;
+  const target = w.w.split(' ')[0];
+  if (target && w.ex.toLowerCase().includes(target.toLowerCase())) {
+    exHtml = w.ex.replace(new RegExp('\\b(' + target.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\w*)', 'i'), '<b>$1</b>');
+  }
+  document.getElementById('fcExEn').innerHTML = exHtml;
+  document.getElementById('fcExZh').textContent = '🇨🇳 ' + (w.zhEx || '');
+  const day = DAYS.find(d => d.words.includes(w));
+  document.getElementById('fcDay').textContent = day.label;
+  document.getElementById('fcIdx').textContent = currentIndex + 1;
+  document.getElementById('fcTotal').textContent = currentList.length;
+  document.getElementById('fcDayTag').textContent = day.label;
+  document.getElementById('fcDayTagBack').textContent = day.label;
+  // auto-speak the word once
+  if (autoSpeak) setTimeout(() => speakWord(false), 350);
+}
+function flipCard() {
+  const card = document.getElementById('flashcard');
+  card.classList.toggle('flipped');
+  // when flipped to back, read the sentence
+  if (card.classList.contains('flipped') && autoSpeak && currentWord) {
+    setTimeout(() => speakSentence(false), 650);
+  }
+}
+function rateCard(level) {
+  if (!currentWord) return;
+  state.learned[currentWord.w] = level;
+  state.stars = (state.stars || 0) + (level === 'easy' ? 2 : 1);
+  saveState();
+  confettiBurst();
+  toast(level === 'easy' ? '😎 Easy!' : level === 'ok' ? '🙂 Okay!' : '💪 Try once more!');
+  setTimeout(() => {
+    if (currentIndex < currentList.length - 1) {
+      currentIndex++; showCard();
+    } else {
+      const card = document.getElementById('flashcard');
+      card.classList.remove('flipped');
+      document.getElementById('fcWord').textContent = '🎉';
+      document.getElementById('fcZh').textContent = 'All done!';
+      document.getElementById('fcEnMean').textContent = 'Great job! Tap Home or pick a new day.';
+      document.getElementById('fcExEn').textContent = '';
+      document.getElementById('fcExZh').textContent = '';
+      bigConfetti();
+    }
+  }, 350);
+  renderHome();
+}
+
+/* ===================== QUIZ ===================== */
+let quizList = [], quizIdx = 0, quizScore = 0;
+function startQuiz() {
+  quizList = [];
+  DAYS.forEach(d => d.words.forEach(w => quizList.push({...w, dayLabel: d.label})));
+  shuffle(quizList);
+  quizList = quizList.slice(0, 12);
+  quizIdx = 0; quizScore = 0;
+  document.getElementById('qzTotal').textContent = quizList.length;
+  nextQuiz();
+}
+function nextQuiz() {
+  if (quizIdx >= quizList.length) { finishQuiz(); return; }
+  const w = quizList[quizIdx];
+  currentWord = w;
+  document.getElementById('qzCur').textContent = quizIdx + 1;
+  document.getElementById('qzWord').textContent = w.w;
+  document.getElementById('qzBar').style.width = (quizIdx / quizList.length * 100) + '%';
+  const pool = [];
+  DAYS.forEach(d => d.words.forEach(x => { if (x.zh !== w.zh && !pool.find(p => p.zh === x.zh)) pool.push({zh:x.zh}); }));
+  shuffle(pool);
+  const options = [w, ...pool.slice(0,3)];
+  shuffle(options);
+  const wrap = document.getElementById('qzOpts');
+  wrap.innerHTML = '';
+  const letters = ['A','B','C','D'];
+  options.forEach((o, i) => {
+    const div = document.createElement('div');
+    div.className = 'quiz-opt';
+    div.innerHTML = `<div class="letter">${letters[i]}</div><div>${o.zh}</div>`;
+    div.onclick = () => answerQuiz(o, w, div);
+    wrap.appendChild(div);
+  });
+  if (autoSpeak) setTimeout(() => speak(w.w), 350);
+}
+function answerQuiz(picked, correct, el) {
+  document.querySelectorAll('.quiz-opt').forEach(o => o.classList.add('disabled'));
+  if (picked.zh === correct.zh) {
+    el.classList.add('correct');
+    quizScore++;
+    state.stars = (state.stars || 0) + 2;
+    saveState();
+    confettiBurst();
+    toast('✅ Right!');
+    // read the example sentence as a reward
+    setTimeout(() => speak(correct.ex), 500);
+  } else {
+    el.classList.add('wrong');
+    document.querySelectorAll('.quiz-opt').forEach(o => {
+      if (o.querySelector('div:last-child').textContent === correct.zh) o.classList.add('correct');
+    });
+    toast('❌ ' + correct.ex);
+    setTimeout(() => speak(correct.ex), 500);
+  }
+  quizIdx++;
+  setTimeout(nextQuiz, 1800);
+}
+function finishQuiz() {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-flashcard').classList.add('active');
+  document.getElementById('flashcard').classList.remove('flipped');
+  document.getElementById('fcDay').textContent = 'Quiz Done';
+  document.getElementById('fcIdx').textContent = '✓';
+  document.getElementById('fcTotal').textContent = quizList.length;
+  document.getElementById('fcWord').textContent = '🏆 ' + quizScore + ' / ' + quizList.length;
+  document.getElementById('fcZh').textContent = 'Quiz result';
+  document.getElementById('fcEnMean').textContent = 'You got ' + quizScore + ' right out of ' + quizList.length + '! Tap Home to play more.';
+  document.getElementById('fcExEn').textContent = '';
+  document.getElementById('fcExZh').textContent = '';
+  bigConfetti();
+  setTimeout(() => { go('home'); }, 2600);
+}
+
+/* ===================== SPELL ===================== */
+let spellList = [], spellIdx = 0;
+function startSpell() {
+  spellList = [];
+  DAYS.forEach(d => d.words.forEach(w => spellList.push({...w, dayLabel:d.label})));
+  shuffle(spellList);
+  spellList = spellList.slice(0, 10);
+  spellIdx = 0;
+  document.getElementById('spTotal').textContent = spellList.length;
+  showSpell();
+}
+function showSpell() {
+  if (spellIdx >= spellList.length) { finishSpell(); return; }
+  const w = spellList[spellIdx];
+  currentSpell = w;
+  document.getElementById('spCur').textContent = spellIdx + 1;
+  document.getElementById('spHint').textContent = w.zh + ' — ' + w.en;
+  document.getElementById('spInput').value = '';
+  document.getElementById('spMsg').textContent = '';
+  document.getElementById('spEx').textContent = '💡 ' + w.ex;
+  document.getElementById('spInput').focus();
+  if (autoSpeak) setTimeout(() => speak(w.w), 350);
+}
+function checkSpell() {
+  const inp = document.getElementById('spInput').value.trim().toLowerCase();
+  const w = spellList[spellIdx];
+  const target = w.w.toLowerCase();
+  const msg = document.getElementById('spMsg');
+  if (inp.length === 0) {
+    msg.style.color = '#8a8aa3'; msg.textContent = 'Type the word first!'; return;
+  }
+  if (inp === target) {
+    msg.style.color = '#1a9d57';
+    msg.textContent = '✅ Yes! "' + w.w + '" = ' + w.zh;
+    state.learned[w.w] = 'easy';
+    state.stars = (state.stars || 0) + 3;
+    saveState();
+    confettiBurst();
+    setTimeout(() => { spellIdx++; showSpell(); }, 1300);
+  } else {
+    msg.style.color = '#d4335f';
+    msg.textContent = '❌ Try again! Listen 🔊 if you need help.';
+    state.stars = (state.stars || 0) + 1;
+    saveState();
+  }
+}
+function finishSpell() {
+  document.getElementById('spHint').textContent = '🏆 All done!';
+  document.getElementById('spInput').value = '';
+  document.getElementById('spMsg').textContent = '';
+  document.getElementById('spEx').textContent = 'Tap Home to keep playing!';
+  bigConfetti();
+}
+
+/* ===================== MATCH ===================== */
+let matchPairs = 0, matchTotal = 5, matchFirst = null, matchLock = false;
+let matchWords = [];
+function startMatch() {
+  matchPairs = 0; matchTotal = 5;
+  document.getElementById('mtTotal').textContent = matchTotal;
+  const all = [];
+  DAYS.forEach(d => d.words.forEach(w => all.push(w)));
+  shuffle(all);
+  const picks = all.slice(0, matchTotal);
+  matchWords = picks;
+  const tiles = [];
+  picks.forEach((p, i) => {
+    tiles.push({kind:'word', text:p.w, match:i});
+    tiles.push({kind:'mean', text:p.zh, match:i});
+  });
+  shuffle(tiles);
+  const area = document.getElementById('matchArea');
+  area.innerHTML = '';
+  tiles.forEach((t) => {
+    const d = document.createElement('div');
+    d.className = 'match-tile';
+    d.textContent = t.text;
+    d.dataset.match = t.match;
+    d.dataset.kind = t.kind;
+    d.onclick = () => pickMatch(d, t);
+    area.appendChild(d);
+  });
+  matchFirst = null; matchLock = false;
+  document.getElementById('mtPairs').textContent = 0;
+}
+function pickMatch(el, tile) {
+  if (matchLock || el.classList.contains('matched')) return;
+  // speaking words helps kids learn while playing
+  if (tile.kind === 'word') speak(tile.text);
+  if (!matchFirst) { el.classList.add('selected'); matchFirst = {el, tile}; return; }
+  if (matchFirst.el === el) { el.classList.remove('selected'); matchFirst = null; return; }
+  matchLock = true;
+  const sameMatch = String(matchFirst.tile.match) === String(tile.match) && matchFirst.tile.kind !== tile.kind;
+  if (sameMatch) {
+    el.classList.add('matched'); matchFirst.el.classList.add('matched');
+    matchPairs++;
+    document.getElementById('mtPairs').textContent = matchPairs;
+    state.stars = (state.stars || 0) + 3;
+    saveState();
+    const wd = matchWords[tile.match];
+    if (wd) setTimeout(() => toast('🎵 ' + wd.ex + ' — ' + (wd.zhEx || '')), 300);
+    if (matchPairs >= matchTotal) {
+      setTimeout(() => { bigConfetti(); toast('🏆 You matched them all!'); setTimeout(startMatch, 2200); }, 600);
+    }
+    matchFirst = null; matchLock = false;
+  } else {
+    el.classList.add('wrong'); matchFirst.el.classList.add('wrong');
+    setTimeout(() => {
+      el.classList.remove('wrong'); matchFirst.el.classList.remove('wrong'); matchFirst.el.classList.remove('selected');
+      matchFirst = null; matchLock = false;
+    }, 500);
+  }
+}
+
+/* ===================== PROGRESS / SETTINGS ===================== */
+function renderProgress() {
+  let allWords = [];
+  DAYS.forEach(d => d.words.forEach(w => allWords.push(w)));
+  let learnedCount = allWords.filter(w => state.learned[w.w]).length;
+  document.getElementById('statLearned').textContent = learnedCount;
+  document.getElementById('statTotal').textContent = allWords.length;
+  document.getElementById('statPct').textContent = Math.round(learnedCount / allWords.length * 100) + '%';
+  const dp = document.getElementById('dayProgress');
+  dp.innerHTML = '';
+  DAYS.forEach(d => {
+    const total = d.words.length;
+    let done = 0;
+    d.words.forEach(w => { if (state.learned[w.w]) done++; });
+    const pct = total ? Math.round(done / total * 100) : 0;
+    const r = document.createElement('div');
+    r.className = 'row';
+    r.innerHTML = `<span>${d.label} · ${d.theme}</span><span class="v">${done}/${total} · ${pct}%</span>`;
+    dp.appendChild(r);
+  });
+  document.getElementById('autoSpeakToggle').classList.toggle('on', !!autoSpeak);
+  document.getElementById('slowSpeakToggle').classList.toggle('on', !!slowSpeak);
+  if (!('speechSynthesis' in window)) document.getElementById('voiceStatus').textContent = 'Not supported';
+}
+function toggleAutoSpeak() {
+  autoSpeak = !autoSpeak;
+  state.autoSpeak = autoSpeak;
+  saveState();
+  document.getElementById('autoSpeakToggle').classList.toggle('on', autoSpeak);
+}
+function toggleSlowSpeak() {
+  slowSpeak = !slowSpeak;
+  state.slowSpeak = slowSpeak;
+  saveState();
+  document.getElementById('slowSpeakToggle').classList.toggle('on', slowSpeak);
+  toast(slowSpeak ? '🐢 Slow mode on' : '🐇 Normal speed');
+}
+function resetProgress() {
+  if (!confirm('Reset all your progress?')) return;
+  state = { learned:{}, streak:0, stars:0, lastOpenDate:'', autoSpeak:autoSpeak, slowSpeak:slowSpeak };
+  saveState();
+  toast('🔄 Progress cleared!');
+  renderProgress();
+}
+
+/* ===================== UTILS ===================== */
+function shuffle(a) {
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+}
+function toast(text) {
+  const t = document.getElementById('toast');
+  t.textContent = text;
+  t.classList.add('show');
+  clearTimeout(window._toastT);
+  window._toastT = setTimeout(() => t.classList.remove('show'), 1800);
+}
+function confettiBurst() {
+  const colors = ['#FF6FA8','#8E7CFF','#4FB4FF','#4CD891','#FFD166','#FF974D'];
+  for (let i = 0; i < 10; i++) {
+    const c = document.createElement('div');
+    c.className = 'confetti';
+    c.style.background = colors[Math.floor(Math.random()*colors.length)];
+    c.style.left = (50 + (Math.random()-0.5)*40) + '%';
+    c.style.top = '40%';
+    c.style.transition = 'all .9s ease-out';
+    document.body.appendChild(c);
+    requestAnimationFrame(() => {
+      c.style.opacity = '1';
+      c.style.transform = 'translate(' + ((Math.random()-0.5)*300) + 'px,' + (200+Math.random()*200) + 'px) rotate(' + Math.random()*720 + 'deg)';
+    });
+    setTimeout(() => c.remove(), 1100);
+  }
+}
+function bigConfetti() {
+  const colors = ['#FF6FA8','#8E7CFF','#4FB4FF','#4CD891','#FFD166','#FF974D'];
+  for (let i = 0; i < 50; i++) {
+    const c = document.createElement('div');
+    c.className = 'confetti';
+    c.style.background = colors[Math.floor(Math.random()*colors.length)];
+    c.style.left = Math.random()*100 + '%';
+    c.style.top = '20%';
+    c.style.transition = 'all 1.4s cubic-bezier(0.2,0.6,0.3,1)';
+    document.body.appendChild(c);
+    requestAnimationFrame(() => {
+      c.style.opacity = '1';
+      c.style.transform = 'translate(' + ((Math.random()-0.5)*200) + 'px,' + (200+Math.random()*400) + 'px) rotate(' + Math.random()*1080 + 'deg)';
+    });
+    setTimeout(() => c.remove(), 1700);
+  }
+}
+
+/* ===================== INIT ===================== */
+window.addEventListener('DOMContentLoaded', () => {
+  renderHome();
+  autoSpeak = state.autoSpeak !== false;
+  slowSpeak = !!state.slowSpeak;
+  // streak / date
+  const today = new Date().toDateString();
+  if (state.lastOpenDate !== today) {
+    if (state.lastOpenDate) {
+      const d1 = new Date(state.lastOpenDate);
+      const d2 = new Date(today);
+      const diff = Math.round((d2 - d1) / 86400000);
+      state.streak = (diff === 1) ? (state.streak || 0) + 1 : 1;
+    } else {
+      state.streak = 1;
+    }
+    state.lastOpenDate = today;
+    saveState();
+  }
+  document.getElementById('streakNum').textContent = state.streak || 0;
+  document.getElementById('starNum').textContent = state.stars || 0;
+
+  // Enter to check spell
+  const sp = document.getElementById('spInput');
+  sp.addEventListener('keydown', e => { if (e.key === 'Enter') checkSpell(); });
+
+  // preload voices
+  if ('speechSynthesis' in window) {
+    speechSynthesis.getVoices();
+    speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices();
+  }
+
+  // Swipe gestures on flashcard
+  let sx = 0, sy = 0;
+  const card = document.getElementById('flashcard');
+  card.addEventListener('touchstart', e => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, {passive:true});
+  card.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - sx;
+    const dy = e.changedTouches[0].clientY - sy;
+    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)) {
+      rateCard(dx < 0 ? 'hard' : 'easy');
+    } else if (Math.abs(dy) > 60) {
+      rateCard('ok');
+    }
+  });
+});
+</script>
+</body>
+</html>
