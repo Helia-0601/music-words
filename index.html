@@ -712,8 +712,27 @@ function pickVoice() {
   return englishVoices.slice().sort((a, b) => scoreVoice(b) - scoreVoice(a))[0];
 }
 const IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const IS_WECHAT = /MicroMessenger/i.test(navigator.userAgent);
+/* --- Online TTS fallback (for WeChat webview & browsers without speechSynthesis) --- */
+let ttsAudio = null;
+function fallbackSpeak(text, slow) {
+  try {
+    if (ttsAudio) { ttsAudio.pause(); ttsAudio = null; }
+    const enc = encodeURIComponent(text);
+    const spd = slow ? 2 : 4;
+    // Primary: Baidu translate TTS (accessible in China)
+    ttsAudio = new Audio('https://fanyi.baidu.com/gettts?lan=en&text=' + enc + '&spd=' + spd + '&source=web');
+    const play = ttsAudio.play();
+    if (play && play.catch) play.catch(() => {
+      // Backup: Youdao dict voice (type 2 = US accent)
+      ttsAudio = new Audio('https://dict.youdao.com/dictvoice?type=2&audio=' + enc);
+      const p2 = ttsAudio.play();
+      if (p2 && p2.catch) p2.catch(() => toast('🔇 No sound here — open in Safari / Chrome 🔗'));
+    });
+  } catch(e) { toast('🔇 No sound here — open in Safari / Chrome 🔗'); }
+}
 function speak(text, slow) {
-  if (!('speechSynthesis' in window)) { toast('🔇 No speech here — please open in Safari or Chrome.'); return; }
+  if (!('speechSynthesis' in window)) { fallbackSpeak(text, slow); return; }
   try {
     const synth = window.speechSynthesis;
     if (synth.speaking || synth.pending) synth.cancel();
@@ -731,7 +750,7 @@ function speak(text, slow) {
       synth.speak(u);
     }
     voiceReady = true;
-  } catch(e) { toast('🔇 Voice not ready.'); }
+  } catch(e) { fallbackSpeak(text, slow); }
 }
 // iOS/Android: TTS only works after the first user touch — "unlock" it silently
 let speechUnlocked = false;
@@ -750,7 +769,8 @@ function speakWord(slow) { if (currentWord) speak(currentWord.w, slow); }
 function speakSentence(slow) { if (currentWord) speak(currentWord.ex, slow); }
 function initVoiceSelect() {
   const sel = document.getElementById('voiceSelect');
-  if (!sel || !('speechSynthesis' in window)) return;
+  if (!sel) return;
+  if (!('speechSynthesis' in window)) { sel.innerHTML = '<option>Online voice (auto) 🌐</option>'; return; }
   refreshVoices();
   const list = englishVoices.slice().sort((a, b) => scoreVoice(b) - scoreVoice(a));
   if (!list.length) { sel.innerHTML = '<option>No English voice found</option>'; return; }
@@ -1201,6 +1221,9 @@ window.addEventListener('DOMContentLoaded', () => {
     speechSynthesis.onvoiceschanged = () => { refreshVoices(); initVoiceSelect(); };
     // iOS: voices may load late — retry once after 1s
     setTimeout(() => { refreshVoices(); initVoiceSelect(); }, 1000);
+  } else if (IS_WECHAT) {
+    initVoiceSelect();
+    setTimeout(() => toast('💡 Tip: open in Safari/Chrome for the best voice'), 600);
   }
 
   // Swipe gestures on flashcard
