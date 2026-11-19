@@ -308,6 +308,15 @@
   .confetti { position: fixed; pointer-events: none; width: 8px; height: 12px; border-radius: 2px; z-index: 999; opacity: 0; }
 
   .legend { font-size: 12px; color: var(--muted); margin: 10px 4px 0; }
+
+  /* ---------- Word List ---------- */
+  .wl-row { display:flex; align-items:center; gap:10px; padding:9px 4px;
+            border-bottom:1px solid #f0f0f4; cursor:pointer; }
+  .wl-row:last-child { border-bottom:none; }
+  .wl-row:active { background:#f4f4fb; }
+  .wl-w { font-weight:700; color:#222; flex:1.1; font-size:14.5px; }
+  .wl-zh { flex:1; color:#555; font-size:13.5px; text-align:right; }
+  .wl-spk { font-size:15px; width:22px; text-align:center; }
 </style>
 </head>
 <body>
@@ -511,6 +520,18 @@
     <button class="btn" onclick="go('flashcard')">Continue learning</button>
   </section>
 
+  <!-- ============ WORD LIST (核对表) ============ -->
+  <section class="screen" id="screen-list">
+    <header class="top">
+      <h1>📖 Word List</h1>
+      <p class="sub">All 217 words · tap to hear 🔊</p>
+    </header>
+    <input id="wlSearch" placeholder="🔍 Search English / 中文" oninput="renderWordList()"
+           style="width:100%;padding:12px 14px;border-radius:14px;border:1.5px solid #e2e2ea;font-size:15px;background:#fff;color:#222;outline:none;">
+    <div id="wlCount" style="font-size:12px;color:#999;margin:8px 4px 4px;"></div>
+    <div id="wlBox"></div>
+  </section>
+
 </main>
 
 <!-- ============ TOAST ============ -->
@@ -522,6 +543,7 @@
   <div class="tab" data-tab="flashcard" onclick="switchTab('flashcard')"><div class="em">🎴</div>Cards</div>
   <div class="tab" data-tab="quiz" onclick="switchTab('quiz')"><div class="em">🎯</div>Quiz</div>
   <div class="tab" data-tab="match" onclick="switchTab('match')"><div class="em">🧩</div>Match</div>
+  <div class="tab" data-tab="list" onclick="switchTab('list')"><div class="em">📖</div>List</div>
   <div class="tab" data-tab="progress" onclick="switchTab('progress')"><div class="em">📊</div>Me</div>
 </nav>
 
@@ -618,7 +640,7 @@ const DAYS = [
   { id:'d12', label:'Day 12–18', theme:'Italian performance words', words:[
     {w:'a tempo', zh:'回原速', en:'Back to the original speed', ex:'After slowing down, return a tempo.', zhEx:'渐慢之后回到原速。'},
     {w:'accelerando', zh:'(accel.) 渐快', en:'Gradually getting faster', ex:'The music grows: accelerando!', zhEx:'音乐越来越快：渐快！'},
-    {w:'adagio', zh:'慢板', en:'Slow, calm and grand', ex:'Play this adagio with care.', zhEx:'用心弹这首慢板。'},
+    {w:'adagio', zh:'柔板', en:'Slow, calm and singing', ex:'Play this adagio with care.', zhEx:'用心弹这首柔板。'},
     {w:'allegretto', zh:'小快板', en:'A little fast — light and quick', ex:'Allegretto is light and quick.', zhEx:'小快板轻快活泼。'},
     {w:'andante', zh:'行板', en:'A walking pace — medium speed', ex:'Andante feels like a stroll.', zhEx:'行板像散步的节奏。'},
     {w:'cantabile', zh:'如歌的', en:'In a singing style', ex:'Make this line more cantabile.', zhEx:'让这一句更像唱歌。'},
@@ -638,7 +660,7 @@ const DAYS = [
     {w:'sempre', zh:'始终/一直', en:'Always, all the time', ex:'Sempre forte: always loud.', zhEx:'sempre forte：始终强奏。'},
     {w:'espressivo', zh:'(espress.) 富表情', en:'With feeling', ex:'Play espressivo — full of emotion.', zhEx:'充满感情地弹。'},
     {w:'grave', zh:'极慢板', en:'Very slow and serious', ex:'The grave section is heavy.', zhEx:'极慢板的部分很沉重。'},
-    {w:'largo', zh:'广板', en:'Very slow, broad', ex:'Largo is slower than adagio.', zhEx:'广板比慢板更慢。'},
+    {w:'largo', zh:'广板', en:'Very slow, broad', ex:'Largo is slower than adagio.', zhEx:'广板比柔板更慢。'},
     {w:'presto', zh:'急板', en:'Very fast!', ex:'Presto — flying fingers!', zhEx:'急板——手指要飞起来！'},
     {w:'ritardando', zh:'(rit.) 渐慢', en:'Gradually slowing down', ex:'A ritardando at the end.', zhEx:'结尾做一个渐慢。'}
   ]},
@@ -810,9 +832,120 @@ function go(name) {
   if (name === 'spell') startSpell();
   if (name === 'match') startMatch();
   if (name === 'progress') renderProgress();
+  if (name === 'list') renderWordList();
   window.scrollTo({top:0, behavior:'smooth'});
 }
 function switchTab(name) { go(name); }
+
+/* ===================== WORD LIST (核对表) ===================== */
+const WORDLIST = [
+{g:'Basic Music Theory', zh:'基础乐理', items:[
+ ['pitch','音高'],['rhythm','节奏'],['melody','旋律'],['harmony','和声'],
+ ['scale','音阶'],['note','音符'],['chord','和弦'],['key','调'],
+ ['tempo','速度'],['dynamics','力度'],['timbre','音色'],['phrase','乐句'],
+ ['accent','重音'],['rest','休止符'],['sustain','延音'],['arpeggio','琶音'],
+ ['beat','节拍'],['syncopation','切分音'],['triplet','三连音'],['chord progression','和弦进行']
+]},
+{g:'Notation, Intervals & Harmony', zh:'记谱、音程与和声', items:[
+ ['staff','五线谱'],['treble clef','高音谱号'],['bass clef','低音谱号'],
+ ['alto clef','中音谱号'],['tenor clef','次中音谱号'],['ledger line','加线'],
+ ['time signature','拍号'],['meter','拍子'],['upbeat','弱拍'],['downbeat','强拍'],
+ ['key signature','调号'],['accidental','变音记号'],['sharp','升号'],['flat','降号'],
+ ['natural','还原号'],['interval','音程'],['major','大调 / 大'],['minor','小调 / 小'],
+ ['augmented','增'],['diminished','减'],['perfect','纯'],['unison','同度'],
+ ['octave','八度'],['step','级进'],['skip','跳进'],['triad','三和弦'],['root','根音'],
+ ['root position','原位'],['first inversion','第一转位'],['second inversion','第二转位'],
+ ['consonance','协和'],['dissonance','不协和']
+]},
+{g:'Scale Degrees, Form & Ornaments', zh:'调式级数、曲式与装饰音', items:[
+ ['tonic','主音 (I)'],['supertonic','上主音 (II)'],['mediant','中音 (III)'],
+ ['subdominant','下属音 (IV)'],['dominant','属音 (V)'],['submediant','下中音 (VI)'],
+ ['leading note','导音 (VII)'],['modulate','转调'],['transpose','移调'],
+ ['binary form','二部曲式'],['ternary form','三部曲式'],['texture','织体'],
+ ['theme','主题'],['movement','乐章'],['exposition','呈示部'],['development','展开部'],
+ ['recapitulation','再现部'],['coda','尾声'],['cadenza','华彩乐段'],['cadence','终止式'],
+ ['half cadence','半终止'],['perfect cadence','完全终止'],['plagal cadence','变格终止'],
+ ['resolve','解决'],['suspension','延留音'],['passing tone','经过音'],
+ ['neighbor tone','辅助音'],['ornament','装饰音'],['variation','变奏']
+]},
+{g:'Tempo Terms', zh:'速度术语（由慢到快）', items:[
+ ['Grave','壮板'],['Largo','广板'],['Lento','慢板'],['Adagio','柔板'],
+ ['Larghetto','小广板'],['Andante','行板'],['Andantino','小行板'],
+ ['Sostenuto','如歌的行板'],['Comodo','速度适中'],['Moderato','中板'],
+ ['Allegretto','小快板'],['Allegro','快板'],['Vivo','速板'],['Vivace','速板'],
+ ['Presto','急板'],['Prestissimo','最急板'],
+ ['a tempo','回原速'],['accelerando (accel.)','渐快'],
+ ['ritardando (rit.)','渐慢'],['rubato','自由速度']
+]},
+{g:'Expression & Performance Directions', zh:'表情与演奏指示术语', items:[
+ ['Abbandono','纵情地'],['Accarezzevole','深情的'],['Affettuoso','富于感情的'],
+ ['Agitato','激动的'],['Amabile','愉快的'],['Alla marcia','进行曲风格'],
+ ['Amoroso','柔情的'],['Animato','活泼的'],['Appassionato','热情的'],
+ ['Brillante','辉煌的'],['Buffo','滑稽的'],['Cantabile','如歌的'],
+ ['Capriccioso','随想的'],['Con amore','有爱情地'],['Con anima','有感情地'],
+ ['Con dolcezza','温柔地、柔和地'],['Con dolore','悲痛地'],
+ ['Con espressione','有表情地'],['Con grazio','优美地'],['Con spirito','有生气地'],
+ ['Dolce','柔和、甜美的'],['Dolente','哀伤的'],['Elegante','优美的、高雅的'],
+ ['Flebile','哀痛的'],['Festivo','欢庆的'],['Fiero','骄傲、凶猛的'],
+ ['Fresco','有朝气地'],['Funebre','葬礼的'],['Furioso','狂暴的'],
+ ['Giocoso','诙谐的'],['Grandioso','雄伟的'],['Innocente','纯洁的'],
+ ['Lagrimoso','哭泣地'],['Lamentabile','可悲的'],['Leggiero','轻巧的'],
+ ['Lugubre','阴郁的'],['Maestoso','高贵、庄严的'],['Misterioso','神秘的'],
+ ['Pastorale','田园风格'],['Pomposo','豪华的、炫耀的'],['Quieto','平静的'],
+ ['Religioso','虔诚的'],['Risoluto','果敢的'],['Smorzando','逐渐消失'],
+ ['Sonore','响亮的'],['Strepitoso','喧闹的'],['Tranquillo','安静的'],
+ ['Vigoroso','刚健的'],
+ ['crescendo (cresc.)','渐强'],['decrescendo (decresc.)','渐弱'],
+ ['diminuendo (dim.)','渐弱'],['legato','连奏'],['staccato (stacc.)','断奏'],
+ ['marcato (marc.)','着重、强调'],['poco a poco','一点点地'],['molto','非常'],
+ ['piu','更加'],['meno','更少、稍弱'],['sforzando (sf/sfz)','突强'],
+ ['sempre','始终、一直'],['espressivo (espress.)','富有表情的']
+]},
+{g:'Playing Techniques & Voice Parts', zh:'演奏法及声部术语', items:[
+ ['Solo','独奏、独唱'],['div.','分奏'],['unis.','齐奏'],['arco.','用弓拉奏'],
+ ['pizz.','拨奏'],['Saltando','跳弓'],['Col legno','用弓背敲奏'],
+ ['Con sordino','加弱音器'],['Senza sordino','除去弱音器'],
+ ['Glissando','滑奏、刮奏'],['R. (M.d.)','用右手'],['L. (M.g.)','用左手'],
+ ['Soprano','女高音'],['Coloratura soprano','花腔女高音'],
+ ['Lyric soprano','抒情女高音'],['Mezzo soprano','女中音（次女高音）'],
+ ['Alto','女低音'],['Tenor','男高音'],['Baritone','男中音'],['Bass','男低音']
+]},
+{g:'Musical Forms', zh:'常用曲体名词', items:[
+ ['Aria','咏叹调'],['Arioso','咏叙调'],['Ballade','叙事曲'],['Capriccio','随想曲'],
+ ['Concerto','协奏曲'],['Fantasia','幻想曲'],['Fuga','赋格曲'],['Fughetta','小赋格曲'],
+ ['Intermezzo','间奏曲'],['Introduzione','引子'],['Invention','创意曲'],
+ ['Menuet','小步舞曲'],['Op.','作品'],['Overture','序曲'],['Prelude','前奏曲'],
+ ['Quartet','四重奏、四重唱'],['Quintet','五重奏、五重唱'],['Rhapsodie','狂想曲'],
+ ['Romance','浪漫曲'],['Rondo','回旋曲'],['Rondo sonata form','回旋奏鸣曲'],
+ ['Scherzo','谐谑曲'],['Serenata','小夜曲'],['Sonata','奏鸣曲'],['Sonatina','小奏鸣曲'],
+ ['Symphony','交响曲'],['Tango','探戈舞曲'],['Toccata','托卡塔'],['Trio','三声中部'],
+ ['Waltz','圆舞曲']
+]},
+{g:'Review Vocabulary', zh:'综合复习词汇', items:[
+ ['review','复习'],['remember','记住'],['practice','练习'],
+ ['improve','进步'],['musician','音乐家']
+]}
+];
+function renderWordList() {
+  const q = (document.getElementById('wlSearch').value || '').toLowerCase().trim();
+  const box = document.getElementById('wlBox');
+  let shown = 0, total = 0, html = '';
+  WORDLIST.forEach(sec => {
+    total += sec.items.length;
+    const items = sec.items.filter(it => !q || it[0].toLowerCase().includes(q) || it[1].includes(q));
+    shown += items.length;
+    if (!items.length) return;
+    html += '<div class="panel"><h3>' + sec.g + ' <span class="v">' + sec.zh + ' · ' + items.length + '</span></h3>';
+    items.forEach(it => {
+      const say = it[0].replace(/'/g, "\\'");
+      html += '<div class="wl-row" onclick="speak(\'' + say + '\')"><span class="wl-w">' + it[0] +
+              '</span><span class="wl-zh">' + it[1] + '</span><span class="wl-spk">🔊</span></div>';
+    });
+    html += '</div>';
+  });
+  box.innerHTML = html || '<div class="panel"><h3>No match 🔍</h3></div>';
+  document.getElementById('wlCount').textContent = shown + ' / ' + total + ' words';
+}
 
 /* ===================== HOME ===================== */
 function renderHome() {
